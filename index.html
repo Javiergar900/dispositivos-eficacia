@@ -582,6 +582,11 @@
             pointSize = parseInt(document.getElementById('point-size').value);
             document.getElementById('point-size-value').textContent = `${pointSize}px`;
             
+            // Limpiar marcadores existentes
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            // Volver a crear los marcadores con el nuevo tamaño
             updateMapWithHeatPoints();
         }
         
