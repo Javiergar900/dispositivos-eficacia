@@ -149,6 +149,87 @@
             color: #e0e0e0;
         }
         
+        .chips-container {
+            position: relative;
+        }
+        
+        .chips-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: #333;
+            color: #e0e0e0;
+            cursor: pointer;
+        }
+        
+        .chips-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 5px;
+        }
+        
+        .chips-dropdown.show {
+            display: block;
+        }
+        
+        .chips-option {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+        }
+        
+        .chips-option:hover {
+            background: #4a8cff;
+            color: white;
+        }
+        
+        .chips-option:last-child {
+            border-bottom: none;
+        }
+        
+        .selected-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .chip {
+            display: flex;
+            align-items: center;
+            background: #4a8cff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .chip-remove {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
         .btn-container {
             display: flex;
             gap: 10px;
@@ -186,12 +267,21 @@
             background: #00a884;
         }
         
-        .btn-save-map {
-            background: #ff9f43;
+        .btn-map {
+            background: #9b59b6;
+            flex: 1;
+            padding: 8px 15px;
+            font-size: 0.9rem;
         }
         
-        .btn-save-map:hover {
-            background: #ff8f33;
+        .btn-map:hover {
+            background: #8e44ad;
+        }
+        
+        .btn-map.active {
+            background: #bad405;
+            color: black;
+            font-weight: bold;
         }
         
         .summary-box {
@@ -295,35 +385,84 @@
             color: #b0b0b0;
         }
         
-        .map-controls {
+        .map-legend {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            bottom: 10px;
+            left: 10px;
             z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             padding: 10px;
             border-radius: 5px;
+            color: white;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        .size-control {
+        .map-legend-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #bad405;
+        }
+        
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .map-legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #2d2d2d;
+            border-radius: 10px;
+        }
+        
+        .control-group {
             display: flex;
             flex-direction: column;
             gap: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 5px;
         }
         
-        .size-control label {
+        .control-group label {
             font-size: 0.9rem;
             color: #e0e0e0;
+            font-weight: bold;
         }
         
-        .size-control input {
+        .control-group input {
             width: 100%;
+        }
+        
+        .control-value {
+            font-size: 0.8rem;
+            color: #b0b0b0;
+            text-align: center;
+        }
+        
+        .map-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .map-selector-label {
+            font-size: 0.9rem;
+            color: #e0e0e0;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
         
         .export-section {
@@ -371,9 +510,14 @@
                 height: 500px;
             }
             
-            .map-controls {
-                top: 5px;
-                right: 5px;
+            .map-selector {
+                flex-direction: column;
+            }
+            
+            .map-legend {
+                bottom: 5px;
+                left: 5px;
+                font-size: 10px;
             }
         }
         
@@ -392,13 +536,12 @@
                 font-size: 0.9rem;
             }
             
-            .map-controls {
-                flex-direction: row;
-                flex-wrap: wrap;
-                width: calc(100% - 20px);
-                top: 10px;
-                left: 10px;
-                right: 10px;
+            .map-legend {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                margin: 10px;
+                font-size: 11px;
             }
         }
     </style>
@@ -423,17 +566,29 @@
                 </div>
                 
                 <div class="filter-group">
-                    <label for="caratula">Carátula:</label>
-                    <select id="caratula">
-                        <option value="">Todas las carátulas</option>
-                    </select>
+                    <label for="caratula-chips">Carátula:</label>
+                    <div class="chips-container">
+                        <div class="chips-select" id="caratula-select">
+                            Seleccionar carátulas...
+                        </div>
+                        <div class="chips-dropdown" id="caratula-dropdown">
+                        </div>
+                        <div class="selected-chips" id="caratula-chips">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="filter-group">
-                    <label for="fiscalia">Fiscalía:</label>
-                    <select id="fiscalia">
-                        <option value="">Todas las fiscalías</option>
-                    </select>
+                    <label for="fiscalia-chips">Fiscalía:</label>
+                    <div class="chips-container">
+                        <div class="chips-select" id="fiscalia-select">
+                            Seleccionar fiscalías...
+                        </div>
+                        <div class="chips-dropdown" id="fiscalia-dropdown">
+                        </div>
+                        <div class="selected-chips" id="fiscalia-chips">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="filter-group btn-container">
@@ -458,20 +613,49 @@
         <div class="content">
             <div class="map-container">
                 <div id="map"></div>
-                <div class="map-controls">
-                    <button id="save-map-btn" class="btn btn-save-map" title="Guardar mapa como imagen">
-                        💾 Guardar Mapa
-                    </button>
-                    <div class="size-control">
-                        <label for="point-size">Tamaño de puntos:</label>
-                        <input type="range" id="point-size" min="5" max="30" value="15" step="1">
-                        <span id="point-size-value">15px</span>
+                
+                <div class="map-legend">
+                    <div class="map-legend-title">Leyenda de Concentración</div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-color" style="background: #ffeda0;"></span>
+                        <span>Baja concentración</span>
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-color" style="background: #feb24c;"></span>
+                        <span>Media concentración</span>
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-color" style="background: #f03b20;"></span>
+                        <span>Alta concentración</span>
                     </div>
                 </div>
-                <div class="attribution">© OpenStreetMap contributors, © CARTO</div>
+                
+                <div class="attribution" id="map-attribution">© OpenStreetMap contributors</div>
             </div>
             
             <div class="sidebar">
+                <div class="controls-container">
+                    <div class="control-group">
+                        <label for="point-size">Tamaño de puntos:</label>
+                        <input type="range" id="point-size" min="5" max="30" value="15" step="1">
+                        <div class="control-value" id="point-size-value">15px</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="point-opacity">Transparencia de puntos:</label>
+                        <input type="range" id="point-opacity" min="0.1" max="1" value="0.7" step="0.1">
+                        <div class="control-value" id="point-opacity-value">70%</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="map-selector-label">Seleccionar Mapa Base:</div>
+                        <div class="map-selector">
+                            <button type="button" id="btn-lienzo1" class="btn btn-map active">🗺️ Lienzo 1</button>
+                            <button type="button" id="btn-lienzo2" class="btn btn-map">🗺️ Lienzo 2</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="stats-box">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 class="stats-title">📊 Recuento de Cámaras</h3>
@@ -482,21 +666,6 @@
                     </div>
                 </div>
                 
-                <div class="legend">
-                    <div class="legend-title">Leyenda de Concentración</div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #ffeda0;"></span>
-                        <span>Baja concentración</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #feb24c;"></span>
-                        <span>Media concentración</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #f03b20;"></span>
-                        <span>Alta concentración</span>
-                    </div>
-                </div>
             </div>
         </div>
         
@@ -507,12 +676,11 @@
 
     <div id="notification" class="notification">Mapa guardado correctamente</div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     
     <script>
         const CAMERAS_API_URL = "https://api.sheetbest.com/sheets/87fb9cab-586c-4ace-ab7b-ad1a399cbee2/tabs/hoja2";
-        const EVENTS_API_URL = "https://api.sheetbest.com/sheets/87fb9cab-586c-4ace-ab7b-ad1a399cbee2/tabs/hoja";
+        const EVENTS_API_URL = "https://api.sheetbest.com/sheets/87fb9cab-586c-4ace-ab7b-ad1a399cbee2/tabs/Reportes-Judiciales";
         
         let camerasData = [];
         let eventsData = [];
@@ -522,52 +690,184 @@
         let fiscaliaOptions = new Set();
         let markers = [];
         let pointSize = 15; 
+        let pointOpacity = 0.7;
+        let currentMapBounds = null;
+        let currentBaseLayer = 'openstreetmap'; 
         
-        const exampleCamerasData = [
-            { nombre_camara: "22", Y: -35.57042581474543, X: -58.0089044748297, direccion: "Av. Belgrano y Escribano" },
-            { nombre_camara: "32", Y: -35.58033889972898, X: -58.00220968085363, direccion: "Av. San Martín y Mitre" },
-            { nombre_camara: "105", Y: -35.558975373177915, X: -58.016800898493784, direccion: "25 de Mayo y Belgrano" }
-        ];
+        let selectedCaratulas = [];
+        let selectedFiscalias = [];
         
-        const exampleEventsData = [
-            { 
-                calles: "BELGRANO ENTRE ESCRIBANO Y MAZZINI", 
-                fecha_inicio: "25/05/2025", 
-                hora_inicio: "23:40:00", 
-                fecha_fin: "25/05/2025", 
-                hora_fin: "23:59:00", 
-                camaras_aportadas: "22,32,105",
-                caratula: "Robo agravado",
-                fiscalia: "Fiscalía Norte" 
-            },
-            { 
-                calles: "AV. SAN MARTIN Y MITRE", 
-                fecha_inicio: "15/09/2024", 
-                hora_inicio: "8:00:00", 
-                fecha_fin: "08/10/2024", 
-                hora_fin: "19:40:00", 
-                camaras_aportadas: "22,105",
-                caratula: "Daño culposo",
-                fiscalia: "Fiscalía Centro" 
-            },
-            { 
-                calles: "25 DE MAYO Y BELGRANO", 
-                fecha_inicio: "10/08/2024", 
-                hora_inicio: "14:30:00", 
-                fecha_fin: "10/08/2024", 
-                hora_fin: "15:45:00", 
-                camaras_aportadas: "32",
-                caratula: "Incidente vial",
-                fiscalia: "Fiscalía Sur" 
+        let baseLayers = {
+            openstreetmap: null,
+            carto: null
+        };
+        
+        
+        
+        const map = L.map('map', {
+            center: [-35.57, -58.01],
+            zoom: 14,
+            zoomControl: true,
+            zoomSnap: 0.5,
+            zoomDelta: 0.5,
+            wheelPxPerZoomLevel: 60,
+            maxZoom: 20,
+            minZoom: 10
+        });
+        
+        function initializeBaseLayers() {
+            baseLayers.openstreetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 20,
+                detectRetina: true
+            });
+            
+            baseLayers.carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors, © CARTO',
+                maxZoom: 20,
+                detectRetina: true
+            });
+            
+            baseLayers.openstreetmap.addTo(map);
+            updateAttribution('openstreetmap');
+        }
+        
+        function changeBaseLayer(layerName) {
+            if (baseLayers.openstreetmap) map.removeLayer(baseLayers.openstreetmap);
+            if (baseLayers.carto) map.removeLayer(baseLayers.carto);
+            
+            if (baseLayers[layerName]) {
+                baseLayers[layerName].addTo(map);
+                currentBaseLayer = layerName;
+                updateAttribution(layerName);
+                
+                updateMapButtons(layerName);
+                
+                showNotification(`Mapa cambiado a ${layerName === 'openstreetmap' ? 'OpenStreetMap' : 'Carto'}`);
             }
-        ];
+        }
         
-        const map = L.map('map').setView([-35.57, -58.01], 14);
+        function updateAttribution(layerName) {
+            const attribution = document.getElementById('map-attribution');
+            if (layerName === 'openstreetmap') {
+                attribution.textContent = '© OpenStreetMap contributors';
+            } else {
+                attribution.textContent = '© OpenStreetMap contributors, © CARTO';
+            }
+        }
         
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors, © CARTO',
-            maxZoom: 20
-        }).addTo(map);
+        function updateMapButtons(activeLayer) {
+            const btnLienzo1 = document.getElementById('btn-lienzo1');
+            const btnLienzo2 = document.getElementById('btn-lienzo2');
+            
+            btnLienzo1.classList.toggle('active', activeLayer === 'openstreetmap');
+            btnLienzo2.classList.toggle('active', activeLayer === 'carto');
+        }
+        
+        function initializeChips() {
+            const caratulaDropdown = document.getElementById('caratula-dropdown');
+            caratulaOptions.forEach(caratula => {
+                const option = document.createElement('div');
+                option.className = 'chips-option';
+                option.textContent = caratula;
+                option.addEventListener('click', () => {
+                    if (!selectedCaratulas.includes(caratula)) {
+                        selectedCaratulas.push(caratula);
+                        updateChipsDisplay('caratula');
+                    }
+                    caratulaDropdown.classList.remove('show');
+                });
+                caratulaDropdown.appendChild(option);
+            });
+            
+            const fiscaliaDropdown = document.getElementById('fiscalia-dropdown');
+            fiscaliaOptions.forEach(fiscalia => {
+                const option = document.createElement('div');
+                option.className = 'chips-option';
+                option.textContent = fiscalia;
+                option.addEventListener('click', () => {
+                    if (!selectedFiscalias.includes(fiscalia)) {
+                        selectedFiscalias.push(fiscalia);
+                        updateChipsDisplay('fiscalia');
+                    }
+                    fiscaliaDropdown.classList.remove('show');
+                });
+                fiscaliaDropdown.appendChild(option);
+            });
+            
+            document.getElementById('caratula-select').addEventListener('click', function(e) {
+                e.stopPropagation();
+                caratulaDropdown.classList.toggle('show');
+                fiscaliaDropdown.classList.remove('show');
+            });
+            
+            document.getElementById('fiscalia-select').addEventListener('click', function(e) {
+                e.stopPropagation();
+                fiscaliaDropdown.classList.toggle('show');
+                caratulaDropdown.classList.remove('show');
+            });
+            
+            document.addEventListener('click', function() {
+                caratulaDropdown.classList.remove('show');
+                fiscaliaDropdown.classList.remove('show');
+            });
+        }
+        
+        function updateChipsDisplay(type) {
+            const chipsContainer = document.getElementById(`${type}-chips`);
+            const selectElement = document.getElementById(`${type}-select`);
+            
+            chipsContainer.innerHTML = '';
+            
+            const selectedArray = type === 'caratula' ? selectedCaratulas : selectedFiscalias;
+            
+            selectedArray.forEach(item => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.innerHTML = `
+                    ${item}
+                    <button class="chip-remove" data-value="${item}">×</button>
+                `;
+                chipsContainer.appendChild(chip);
+            });
+            
+            if (selectedArray.length === 0) {
+                selectElement.textContent = `Seleccionar ${type === 'caratula' ? 'carátulas' : 'fiscalías'}...`;
+            } else {
+                selectElement.textContent = `${selectedArray.length} ${type === 'caratula' ? 'carátula(s)' : 'fiscalía(s)'} seleccionada(s)`;
+            }
+            
+            chipsContainer.querySelectorAll('.chip-remove').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const value = this.getAttribute('data-value');
+                    const index = selectedArray.indexOf(value);
+                    if (index > -1) {
+                        selectedArray.splice(index, 1);
+                        updateChipsDisplay(type);
+                    }
+                });
+            });
+        }
+        
+        function clearAllChips() {
+            selectedCaratulas = [];
+            selectedFiscalias = [];
+            updateChipsDisplay('caratula');
+            updateChipsDisplay('fiscalia');
+        }
+        
+        function saveMapBounds() {
+            currentMapBounds = map.getBounds();
+        }
+        
+        function restoreMapBounds() {
+            if (currentMapBounds) {
+                map.fitBounds(currentMapBounds);
+            }
+        }
+        
+        setTimeout(saveMapBounds, 1000);
         
         function showNotification(message) {
             const notification = document.getElementById('notification');
@@ -583,51 +883,84 @@
             pointSize = parseInt(document.getElementById('point-size').value);
             document.getElementById('point-size-value').textContent = `${pointSize}px`;
             
-            // Limpiar marcadores existentes
+            saveMapBounds();
+            
+            updateMapPoints();
+            
+            setTimeout(restoreMapBounds, 100);
+        }
+        
+        function updatePointOpacity() {
+            pointOpacity = parseFloat(document.getElementById('point-opacity').value);
+            const opacityPercent = Math.round(pointOpacity * 100);
+            document.getElementById('point-opacity-value').textContent = `${opacityPercent}%`;
+            
+            saveMapBounds();
+            
+            updateMapPoints();
+            
+            setTimeout(restoreMapBounds, 100);
+        }
+        
+        function updateMapPoints() {
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
             
-            // Volver a crear los marcadores con el nuevo tamaño
-            updateMapWithHeatPoints();
-        }
-        
-        function saveMapAsImage() {
-            const mapContainer = document.getElementById('map');
+            const locationCounts = {};
             
-            const mapControls = document.querySelector('.map-controls');
-            const attribution = document.querySelector('.attribution');
-            const originalControlsDisplay = mapControls.style.display;
-            const originalAttributionDisplay = attribution.style.display;
+            filteredEvents.forEach(event => {
+                if (event.camaras_aportadas) {
+                    const cameras = event.camaras_aportadas.split(',');
+                    cameras.forEach(cam => {
+                        const camId = cam.trim();
+                        const camera = camerasData.find(c => c.nombre_camara === camId);
+                        if (camera && camera.Y && camera.X) {
+                            const key = `${camera.Y},${camera.X}`;
+                            if (!locationCounts[key]) {
+                                locationCounts[key] = {
+                                    count: 0,
+                                    camera: camera
+                                };
+                            }
+                            locationCounts[key].count++;
+                        }
+                    });
+                }
+            });
             
-            mapControls.style.display = 'none';
-            attribution.style.display = 'none';
+            const maxCount = Math.max(...Object.values(locationCounts).map(loc => loc.count), 1);
             
-            showNotification("Generando imagen, por favor espere...");
-            
-            html2canvas(mapContainer, {
-                useCORS: true,
-                scale: 2, 
-                logging: false,
-                backgroundColor: '#1e1e1e'
-            }).then(canvas => {
-                mapControls.style.display = originalControlsDisplay;
-                attribution.style.display = originalAttributionDisplay;
+            Object.values(locationCounts).forEach(location => {
+                const { camera, count } = location;
                 
-                const link = document.createElement('a');
-                const date = new Date();
-                const dateStr = `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}_${date.getHours()}-${date.getMinutes()}`;
+                const size = 5 + (count / maxCount) * (pointSize - 5);
                 
-                link.download = `mapa_camaras_${dateStr}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const intensity = count / maxCount;
+                const color = intensity > 0.66 ? '#f03b20' : 
+                             intensity > 0.33 ? '#feb24c' : '#ffeda0';
                 
-                showNotification("Mapa guardado correctamente");
-            }).catch(error => {
-                mapControls.style.display = originalControlsDisplay;
-                attribution.style.display = originalAttributionDisplay;
+                const marker = L.circleMarker([parseFloat(camera.Y), parseFloat(camera.X)], {
+                    radius: size,
+                    fillColor: color,
+                    color: '#000',
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: pointOpacity
+                }).addTo(map);
                 
-                console.error('Error al generar la imagen:', error);
-                showNotification("Error al guardar el mapa");
+                const direccion = getCameraAddress(camera.nombre_camara);
+                const coords = getCameraCoordinates(camera.nombre_camara);
+                
+                marker.bindPopup(`
+                    <div style="text-align: center;">
+                        <strong>Cámara ${camera.nombre_camara}</strong><br>
+                        <strong>Dirección:</strong> ${direccion}<br>
+                        <strong>Participaciones:</strong> ${count}<br>
+                        <strong>Coordenadas:</strong> ${coords.lat}, ${coords.lng}
+                    </div>
+                `);
+                
+                markers.push(marker);
             });
         }
         
@@ -661,6 +994,10 @@
                 
                 processData();
                 
+                initializeBaseLayers();
+                
+                initializeChips();
+                
                 applyFilters();
                 
             } catch (error) {
@@ -674,22 +1011,6 @@
             eventsData.forEach(event => {
                 if (event.caratula) caratulaOptions.add(event.caratula);
                 if (event.fiscalia) fiscaliaOptions.add(event.fiscalia);
-            });
-            
-            const caratulaSelect = document.getElementById('caratula');
-            caratulaOptions.forEach(caratula => {
-                const option = document.createElement('option');
-                option.value = caratula;
-                option.textContent = caratula;
-                caratulaSelect.appendChild(option);
-            });
-            
-            const fiscaliaSelect = document.getElementById('fiscalia');
-            fiscaliaOptions.forEach(fiscalia => {
-                const option = document.createElement('option');
-                option.value = fiscalia;
-                option.textContent = fiscalia;
-                fiscaliaSelect.appendChild(option);
             });
         }
         
@@ -740,8 +1061,6 @@
         function applyFilters() {
             const startDate = new Date(document.getElementById('start-date').value);
             const endDate = new Date(document.getElementById('end-date').value);
-            const caratula = document.getElementById('caratula').value;
-            const fiscalia = document.getElementById('fiscalia').value;
             
             endDate.setHours(23, 59, 59, 999);
             
@@ -754,9 +1073,13 @@
                     }
                 }
                 
-                if (caratula && event.caratula !== caratula) return false;
+                if (selectedCaratulas.length > 0) {
+                    if (!selectedCaratulas.includes(event.caratula)) return false;
+                }
                 
-                if (fiscalia && event.fiscalia !== fiscalia) return false;
+                if (selectedFiscalias.length > 0) {
+                    if (!selectedFiscalias.includes(event.fiscalia)) return false;
+                }
                 
                 return true;
             });
@@ -803,8 +1126,6 @@
         function updateFilterInfo() {
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
-            const caratula = document.getElementById('caratula').value;
-            const fiscalia = document.getElementById('fiscalia').value;
             
             const startParts = startDate.split('-');
             const endParts = endDate.split('-');
@@ -813,12 +1134,20 @@
             
             let info = `Mostrando registros desde ${startDisplay} hasta ${endDisplay}`;
             
-            if (caratula) {
-                info += ` | Carátula: ${caratula}`;
+            if (selectedCaratulas.length > 0) {
+                if (selectedCaratulas.length === 1) {
+                    info += ` | Carátula: ${selectedCaratulas[0]}`;
+                } else {
+                    info += ` | Carátulas: ${selectedCaratulas.join(', ')}`;
+                }
             }
             
-            if (fiscalia) {
-                info += ` | Fiscalía: ${fiscalia}`;
+            if (selectedFiscalias.length > 0) {
+                if (selectedFiscalias.length === 1) {
+                    info += ` | Fiscalía: ${selectedFiscalias[0]}`;
+                } else {
+                    info += ` | Fiscalías: ${selectedFiscalias.join(', ')}`;
+                }
             }
             
             document.getElementById('filter-info').textContent = info;
@@ -873,6 +1202,17 @@
             return `Cámara ${cameraId} - Ubicación registrada`;
         }
         
+        function getCameraCoordinates(cameraId) {
+            const camera = camerasData.find(c => c.nombre_camara === cameraId);
+            if (camera && camera.Y && camera.X) {
+                return {
+                    lat: parseFloat(camera.Y).toFixed(6),
+                    lng: parseFloat(camera.X).toFixed(6)
+                };
+            }
+            return { lat: 'N/A', lng: 'N/A' };
+        }
+        
         function updateMapWithHeatPoints() {
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
@@ -916,16 +1256,18 @@
                     color: '#000',
                     weight: 1,
                     opacity: 1,
-                    fillOpacity: 0.7
+                    fillOpacity: pointOpacity
                 }).addTo(map);
                 
                 const direccion = getCameraAddress(camera.nombre_camara);
+                const coords = getCameraCoordinates(camera.nombre_camara);
                 
                 marker.bindPopup(`
                     <div style="text-align: center;">
                         <strong>Cámara ${camera.nombre_camara}</strong><br>
                         <strong>Dirección:</strong> ${direccion}<br>
-                        <strong>Participaciones:</strong> ${count}
+                        <strong>Participaciones:</strong> ${count}<br>
+                        <strong>Coordenadas:</strong> ${coords.lat}, ${coords.lng}
                     </div>
                 `);
                 
@@ -935,22 +1277,27 @@
             if (markers.length > 0) {
                 const group = new L.featureGroup(markers);
                 map.fitBounds(group.getBounds().pad(0.1));
+                
+                setTimeout(saveMapBounds, 500);
             }
         }
         
         function exportToExcel() {
             const dataForExport = [];
             
-            dataForExport.push(['Cámara', 'Participaciones', 'Dirección']);
+            dataForExport.push(['Cámara', 'Participaciones', 'Dirección', 'Latitud', 'Longitud']);
             
             Object.entries(cameraCounts).forEach(([cameraId, count]) => {
                 if (count > 0) {
                     const camera = camerasData.find(c => c.nombre_camara === cameraId);
                     if (camera) {
+                        const coords = getCameraCoordinates(cameraId);
                         dataForExport.push([
                             cameraId,
                             count,
-                            getCameraAddress(cameraId)
+                            getCameraAddress(cameraId),
+                            coords.lat,
+                            coords.lng
                         ]);
                     }
                 }
@@ -966,7 +1313,7 @@
             
             XLSX.writeFile(wb, filename);
             
-            showNotification("Datos exportados a Excel");
+            showNotification("Datos exportados a Excel con coordenadas");
         }
         
         document.addEventListener('DOMContentLoaded', loadData);
@@ -977,17 +1324,24 @@
         });
         
         document.getElementById('reset-btn').addEventListener('click', function() {
-            document.getElementById('caratula').value = '';
-            document.getElementById('fiscalia').value = '';
+            clearAllChips();
             setDefaultDates();
             applyFilters();
         });
         
         document.getElementById('export-btn').addEventListener('click', exportToExcel);
         
-        document.getElementById('save-map-btn').addEventListener('click', saveMapAsImage);
-        
         document.getElementById('point-size').addEventListener('input', updatePointSize);
+        
+        document.getElementById('point-opacity').addEventListener('input', updatePointOpacity);
+        
+        document.getElementById('btn-lienzo1').addEventListener('click', function() {
+            changeBaseLayer('openstreetmap');
+        });
+        
+        document.getElementById('btn-lienzo2').addEventListener('click', function() {
+            changeBaseLayer('carto');
+        });
     </script>
 </body>
 </html>
