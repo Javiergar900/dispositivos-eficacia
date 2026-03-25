@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Dispositivos y Eficacia Judicial</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #121212;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #bad405;
+            color: rgb(3, 3, 3);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #bad405;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #070707;
+        }
+        
+        .map-main-section {
+            width: 100%;
+            background: #1e1e1e;
+        }
+        
+        .map-container {
+            width: 100%;
+            height: 520px;
+            position: relative;
+            background: #2d2d2d;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .map-controls-bar {
+            background: #252525;
+            padding: 12px 20px;
+            border-bottom: 1px solid #333;
+            border-top: 1px solid #333;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .control-group-horizontal {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2d2d2d;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        
+        .control-item label {
+            font-size: 0.8rem;
+            color: #4a8cff;
+        }
+        
+        .control-item input {
+            width: 100px;
+            cursor: pointer;
+        }
+        
+        .control-item span {
+            font-size: 0.7rem;
+            color: #b0b0b0;
+            min-width: 35px;
+        }
+        
+        .map-selector-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-map-sm {
+            background: #333;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            color: #e0e0e0;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-map-sm.active {
+            background: #bad405;
+            color: black;
+            font-weight: bold;
+        }
+        
+        .judicial-analysis-section {
+            background: #1e1e1e;
+            padding: 20px;
+            border-top: 2px solid #bad405;
+        }
+        
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .analysis-header h2 {
+            color: #bad405;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .analysis-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            background: #333;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            color: #e0e0e0;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .tab-btn.active {
+            background: #4a8cff;
+            color: white;
+            box-shadow: 0 2px 8px rgba(74, 140, 255, 0.3);
+        }
+        
+        .analysis-content-wrapper {
+            background: #252525;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .table-container {
+            max-height: 550px;
+            overflow-y: auto;
+            border-radius: 10px;
+            background: #2d2d2d;
+        }
+        
+        .analysis-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            background: #2d2d2d;
+        }
+        
+        .analysis-table th,
+        .analysis-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+            font-weight: bold;
+            color: #e0e0e0;
+            background: #2d2d2d;
+        }
+        
+        .analysis-table th {
+            background: #4a8cff;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .analysis-table th:first-child,
+        .analysis-table td:first-child {
+            width: 120px;
+            min-width: 100px;
+        }
+        
+        .repitencia-table th,
+        .repitencia-table td {
+            padding: 10px 6px;
+        }
+        
+        .repitencia-table th:first-child { width: 100px; }
+        .repitencia-table th:nth-child(2) { width: 100px; }
+        .repitencia-table th:nth-child(3) { width: 80px; }
+        .repitencia-table th:nth-child(4) { width: 100px; }
+        
+        .analysis-table tr:hover td {
+            background: #3a3a3a;
+        }
+        
+        .repitencia-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .repitencia-alta { background: #ff4757; color: white; }
+        .repitencia-media { background: #ffa502; color: white; }
+        .repitencia-baja { background: #00b894; color: white; }
+        
+        .filter-section {
+            background: #252525;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .filter-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #4a8cff;
+        }
+        
+        .filter-group input, .filter-group select {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: #333;
+            color: #e0e0e0;
+        }
+        
+        /* Borde rojo para el selector de Mes-Agrupación */
+        #mes-agrupacion {
+            border: 2px solid #ff4757;
+        }
+        
+        .chips-container {
+            position: relative;
+        }
+        
+        .chips-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: #333;
+            color: #e0e0e0;
+            cursor: pointer;
+        }
+        
+        .chips-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 5px;
+        }
+        
+        .chips-dropdown.show { display: block; }
+        
+        .chips-option {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+        }
+        
+        .chips-option:hover {
+            background: #4a8cff;
+            color: white;
+        }
+        
+        .selected-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .chip {
+            display: flex;
+            align-items: center;
+            background: #4a8cff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .chip-remove {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #4a8cff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover { background: #3a7cff; }
+        .btn-reset { background: #ff4757; }
+        .btn-reset:hover { background: #ff3747; }
+        .btn-word { background: #2b5797; }
+        .btn-word:hover { background: #1e3c6e; }
+        .btn-green { background: #00b894; }
+        .btn-green:hover { background: #00a884; }
+        .btn-orange { background: #e67e22; }
+        .btn-orange:hover { background: #d35400; }
+        
+        .summary-box {
+            background: #252525;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .summary-item {
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: #2d2d2d;
+            min-width: 180px;
+        }
+        
+        .total-minutes {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4a8cff;
+            margin: 5px 0;
+        }
+        
+        .total-minutes-simple {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffa502;
+            margin: 5px 0;
+        }
+        
+        .cases-count {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffa502;
+            margin: 5px 0;
+        }
+        
+        .filter-info {
+            text-align: center;
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .attribution {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        
+        .map-legend {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #00b894;
+            color: white;
+            border-radius: 5px;
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .chart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chart-modal.show { display: flex; }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+        }
+        
+        .chart-close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #333;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: #bad405;
+            color: rgb(5, 5, 5);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 900px) {
+            .map-container { height: 400px; }
+            .table-container { max-height: 400px; }
+            .map-controls-bar { flex-direction: column; align-items: stretch; }
+            .control-group-horizontal { justify-content: center; }
+        }
+        
+        /* Estilos para el documento editable */
+        .editable-doc {
+            font-family: 'Segoe UI', 'Calibri', 'Times New Roman', serif;
+            background: white;
+            color: #1e1e1e;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .editable-doc h1 { 
+            color: #bad405; 
+            margin-bottom: 5px; 
+            font-size: 28px;
+        }
+        .doc-header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            border-bottom: 3px solid #bad405; 
+            padding-bottom: 15px;
+        }
+        .doc-periodo {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+        }
+        .doc-summary { 
+            display: flex; 
+            justify-content: space-around; 
+            margin: 25px 0; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+        }
+        .doc-summary-item { 
+            background: #f8f9fa; 
+            padding: 15px 25px; 
+            border-radius: 8px; 
+            text-align: center; 
+            min-width: 180px;
+            border: 1px solid #e0e0e0;
+        }
+        .doc-summary-value { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #4a8cff; 
+        }
+        .doc-section { 
+            margin: 35px 0; 
+            page-break-inside: avoid;
+        }
+        .doc-section-title { 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: #4a8cff; 
+            margin-bottom: 15px; 
+            border-left: 5px solid #bad405; 
+            padding-left: 12px;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 15px 0; 
+            font-size: 12px;
+            background: white;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 10px 8px; 
+            text-align: left; 
+            vertical-align: top;
+        }
+        th { 
+            background: #4a8cff; 
+            color: white; 
+            font-weight: bold;
+        }
+        .repitencia-badge { 
+            display: inline-block; 
+            padding: 3px 10px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            font-weight: bold; 
+        }
+        .repitencia-alta { background: #ff4757; color: white; }
+        .repitencia-media { background: #ffa502; color: white; }
+        .repitencia-baja { background: #00b894; color: white; }
+        .doc-footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚖️ Análisis de Dispositivos y Eficacia Judicial</h1>
+            <p class="description">Secretaría de Seguridad | Municipalidad de Chascomús</p>
+        </header>
+        
+        <div class="filter-section">
+            <form id="filter-form" class="filter-form">
+                <div class="filter-group">
+                    <label for="mes-agrupacion">📅 Mes-Agrupación (filtro principal):</label>
+                    <select id="mes-agrupacion">
+                        <option value="">Todos los meses</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="start-date">📆 Fecha desde (opcional):</label>
+                    <input type="date" id="start-date">
+                </div>
+                <div class="filter-group">
+                    <label for="end-date">📆 Fecha hasta (opcional):</label>
+                    <input type="date" id="end-date">
+                </div>
+                <div class="filter-group">
+                    <label>🏷️ Carátula:</label>
+                    <div class="chips-container">
+                        <div class="chips-select" id="caratula-select">Seleccionar carátulas...</div>
+                        <div class="chips-dropdown" id="caratula-dropdown"></div>
+                        <div class="selected-chips" id="caratula-chips"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>⚖️ Fiscalía:</label>
+                    <div class="chips-container">
+                        <div class="chips-select" id="fiscalia-select">Seleccionar fiscalías...</div>
+                        <div class="chips-dropdown" id="fiscalia-dropdown"></div>
+                        <div class="selected-chips" id="fiscalia-chips"></div>
+                    </div>
+                </div>
+                <div class="filter-group btn-container">
+                    <button type="submit" class="btn">Aplicar Filtros</button>
+                    <button type="button" id="reset-btn" class="btn btn-reset">Restablecer</button>
+                    <button type="button" id="export-doc-btn" class="btn btn-word">📄 Descargar Informe</button>
+                </div>
+            </form>
+            <div id="filter-info" class="filter-info">Seleccioná un mes para comenzar</div>
+        </div>
+        
+        <div class="summary-box">
+            <div class="summary-item">
+                <div class="summary-label">📸 Minutos (Oficios):</div>
+                <div id="total-minutes-simple" class="total-minutes-simple">0 min</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">📸 Minutos de grabación totales:</div>
+                <div id="total-minutes" class="total-minutes">0 min</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">📋 Número de casos:</div>
+                <div id="cases-count" class="cases-count">0</div>
+            </div>
+            <div class="summary-item"><button id="export-grafico-barras-btn" class="btn btn-orange">📊 Gráfico Cámaras</button></div>
+            <div class="summary-item"><button id="export-minutos-camaras-btn" class="btn btn-green">📊 Minutos Por Cámara (xlsx)</button></div>
+        </div>
+        
+        <div class="map-main-section">
+            <div class="map-container" id="map-container">
+                <div id="map"></div>
+                <div class="map-legend">
+                    <div class="map-legend-title">Nivel de demanda</div>
+                    <div><span style="background:#ffeda0;display:inline-block;width:12px;height:12px;border-radius:50%;"></span> Bajo</div>
+                    <div><span style="background:#feb24c;display:inline-block;width:12px;height:12px;border-radius:50%;"></span> Medio</div>
+                    <div><span style="background:#f03b20;display:inline-block;width:12px;height:12px;border-radius:50%;"></span> Alto</div>
+                </div>
+                <div class="attribution" id="map-attribution">© OpenStreetMap</div>
+            </div>
+            <div class="map-controls-bar">
+                <div class="control-group-horizontal">
+                    <div class="control-item"><label>🔘 Tamaño:</label><input type="range" id="point-size" min="5" max="30" value="15" step="1"><span id="point-size-value">15px</span></div>
+                    <div class="control-item"><label>🌀 Opacidad:</label><input type="range" id="point-opacity" min="0.1" max="1" value="0.7" step="0.1"><span id="point-opacity-value">70%</span></div>
+                </div>
+                <div class="map-selector-buttons">
+                    <button id="btn-lienzo1" class="btn-map-sm active">🗺️ Lienzo 1</button>
+                    <button id="btn-lienzo2" class="btn-map-sm">🗺️ Lienzo 2</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="judicial-analysis-section">
+            <div class="analysis-header">
+                <h2>📈 Análisis Judicial <span style="font-size:0.9rem;">| Datos filtrados</span></h2>
+                <div class="analysis-tabs">
+                    <button id="tab-fiscalia-caratula" class="tab-btn active">Fiscalía vs Carátula</button>
+                    <button id="tab-caratula-cantidad" class="tab-btn">📊 Distribución de Casos por Carátula</button>
+                    <button id="tab-repitencia-camaras" class="tab-btn">📹 Cámaras más solicitadas</button>
+                </div>
+            </div>
+            <div class="analysis-content-wrapper">
+                <div id="analysis-content" class="table-container">
+                    <div class="loading" style="padding:40px;text-align:center;">Cargando análisis...</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Secretaría de Seguridad | Municipalidad de Chascomús</p>
+        </footer>
+    </div>
+
+    <div id="chart-modal" class="chart-modal">
+        <div class="chart-container">
+            <div class="chart-close" id="chart-close">×</div>
+            <canvas id="minutos-chart" width="800" height="500"></canvas>
+            <div style="text-align:center;margin-top:10px;"><button id="download-chart-btn" class="btn">💾 Descargar Gráfico</button></div>
+        </div>
+    </div>
+    <div id="notification" class="notification">Listo</div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        const CAMERAS_API_URL = "https://api.sheetbest.com/sheets/87fb9cab-586c-4ace-ab7b-ad1a399cbee2/tabs/hoja2";
+        const EVENTS_API_URL = "https://api.sheetbest.com/sheets/87fb9cab-586c-4ace-ab7b-ad1a399cbee2/tabs/Reportes-Judiciales";
+        
+        let camerasData = [], eventsData = [], filteredEvents = [];
+        let caratulaOptions = new Set(), fiscaliaOptions = new Set(), mesAgrupacionOptions = new Set();
+        let markers = [], pointSize = 15, pointOpacity = 0.7, currentBaseLayer = 'openstreetmap';
+        let selectedCaratulas = [], selectedFiscalias = [], selectedMesAgrupacion = '';
+        let baseLayers = { openstreetmap: null, carto: null };
+        let minutosChart = null, currentTab = 'fiscalia-caratula';
+        let map, currentMapBounds = null;
+        
+        // Orden personalizado para fiscalías
+        function ordenarFiscalias(fiscalias) {
+            const ordenPrioridad = ["U.F.I N°9", "U.F.I N°10", "ESPECIALIZADA EN NARCOTRÁFICO"];
+            return fiscalias.sort((a, b) => {
+                const indexA = ordenPrioridad.indexOf(a);
+                const indexB = ordenPrioridad.indexOf(b);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.localeCompare(b);
+            });
+        }
+        
+        function agruparFiscalia(fiscalia) {
+            if (!fiscalia) return "Otros";
+            if (fiscalia === "U.F.I N°10" || fiscalia === "U.F.I N°9" || fiscalia === "ESPECIALIZADA EN NARCOTRÁFICO") return fiscalia;
+            return "Otros";
+        }
+        
+        function procesarCamarasAportadas(camarasStr) {
+            if (!camarasStr || typeof camarasStr !== 'string') return [];
+            let procesado = camarasStr.replace(/\s*[-\/;]\s*/g, ',').replace(/\s+/g, ',');
+            return procesado.split(',').map(c => c.trim()).filter(c => c);
+        }
+        
+        function parseFechaSegura(fechaStr) {
+            if (!fechaStr) return null;
+            let parts = fechaStr.split('/');
+            if (parts.length === 3) return new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+            return null;
+        }
+        
+        function parseHoraSegura(horaStr) {
+            if (!horaStr) return null;
+            let parts = horaStr.split(':');
+            if(parts.length>=2) return {hora:parseInt(parts[0])||0, minuto:parseInt(parts[1])||0};
+            return null;
+        }
+        
+        function calcularMinutosReales(evento) {
+            if(!evento.fecha_inicio || !evento.hora_inicio || !evento.fecha_fin || !evento.hora_fin) return 0;
+            let startD = evento.fecha_inicio.split('/'), endD = evento.fecha_fin.split('/');
+            if(startD.length!==3 || endD.length!==3) return 0;
+            let startT = parseHoraSegura(evento.hora_inicio), endT = parseHoraSegura(evento.hora_fin);
+            if(!startT || !endT) return 0;
+            let startDate = new Date(parseInt(startD[2]), parseInt(startD[1])-1, parseInt(startD[0]), startT.hora, startT.minuto);
+            let endDate = new Date(parseInt(endD[2]), parseInt(endD[1])-1, parseInt(endD[0]), endT.hora, endT.minuto);
+            if(isNaN(startDate) || isNaN(endDate)) return 0;
+            return Math.round((endDate - startDate) / 60000);
+        }
+        
+        function obtenerCantidadDispositivos(evento) {
+            if(!evento.camaras_aportadas) return 0;
+            return procesarCamarasAportadas(evento.camaras_aportadas).length;
+        }
+        
+        function calcularMinutosPonderados(evento) {
+            let minutosReales = calcularMinutosReales(evento);
+            let cantDispositivos = obtenerCantidadDispositivos(evento);
+            if(cantDispositivos === 0) cantDispositivos = 1;
+            return minutosReales * cantDispositivos;
+        }
+        
+        function aplicarFiltrosFechas(evento, startDate, endDate) {
+            if (!startDate && !endDate) return true;
+            if (!startDate || !endDate) return true;
+            let evDate = parseFechaSegura(evento.fecha_inicio);
+            if (!evDate) return true;
+            let [sY,sM,sD] = startDate.split('-').map(Number);
+            let [eY,eM,eD] = endDate.split('-').map(Number);
+            let filterStart = new Date(sY,sM-1,sD);
+            let filterEnd = new Date(eY,eM-1,eD,23,59,59);
+            return evDate >= filterStart && evDate <= filterEnd;
+        }
+        
+        function applyFilters() {
+            let mesAgrupacion = document.getElementById('mes-agrupacion').value;
+            let startDate = document.getElementById('start-date').value;
+            let endDate = document.getElementById('end-date').value;
+            selectedMesAgrupacion = mesAgrupacion;
+            
+            filteredEvents = eventsData.filter(ev => {
+                if (mesAgrupacion && ev['mes-agrupacion'] !== mesAgrupacion) return false;
+                if (!aplicarFiltrosFechas(ev, startDate, endDate)) return false;
+                if (selectedCaratulas.length > 0 && !selectedCaratulas.includes(ev.caratula)) return false;
+                if (selectedFiscalias.length > 0 && !selectedFiscalias.includes(ev.fiscalia)) return false;
+                return true;
+            });
+            
+            let totalMinutosReales = 0, totalMinutosPonderados = 0;
+            filteredEvents.forEach(ev => {
+                totalMinutosReales += calcularMinutosReales(ev);
+                totalMinutosPonderados += calcularMinutosPonderados(ev);
+            });
+            
+            document.getElementById('total-minutes-simple').innerHTML = totalMinutosReales.toLocaleString() + ' min';
+            document.getElementById('total-minutes').innerHTML = totalMinutosPonderados.toLocaleString() + ' min';
+            document.getElementById('cases-count').innerHTML = filteredEvents.length;
+            
+            updateMapPoints();
+            updateFilterInfo();
+            updateAllAnalysis();
+        }
+        
+        function updateFilterInfo(){
+            let mes = document.getElementById('mes-agrupacion').value;
+            let startDate = document.getElementById('start-date').value;
+            let endDate = document.getElementById('end-date').value;
+            let info = mes ? `📅 Mes: ${mes}` : `📅 Todos los meses`;
+            if (startDate && endDate) info += ` | 📆 ${startDate.split('-').reverse().join('/')} → ${endDate.split('-').reverse().join('/')}`;
+            if (selectedCaratulas.length > 0) info += ` | 🏷️ ${selectedCaratulas.length === 1 ? selectedCaratulas[0] : selectedCaratulas.length + ' carátulas'}`;
+            if (selectedFiscalias.length > 0) info += ` | ⚖️ ${selectedFiscalias.length === 1 ? selectedFiscalias[0] : selectedFiscalias.length + ' fiscalías'}`;
+            document.getElementById('filter-info').innerHTML = info;
+        }
+        
+        function updateMapPoints() {
+            markers.forEach(m => map.removeLayer(m)); markers = [];
+            let counts = {};
+            filteredEvents.forEach(ev => {
+                if(ev.camaras_aportadas){
+                    procesarCamarasAportadas(ev.camaras_aportadas).forEach(camId => {
+                        let cam = camerasData.find(c => c.nombre_camara === camId);
+                        if(cam && cam.Y && cam.X){
+                            let key = `${cam.Y},${cam.X}`;
+                            counts[key] = counts[key] || {count:0, camera:cam};
+                            counts[key].count++;
+                        }
+                    });
+                }
+            });
+            let max = Math.max(...Object.values(counts).map(v=>v.count),1);
+            Object.values(counts).forEach(({camera, count}) => {
+                let size = 5 + (count/max)*(pointSize-5);
+                let color = count/max > 0.66 ? '#f03b20' : (count/max > 0.33 ? '#feb24c' : '#ffeda0');
+                let marker = L.circleMarker([parseFloat(camera.Y), parseFloat(camera.X)], {
+                    radius: size, fillColor: color, color: '#000', weight: 1, fillOpacity: pointOpacity
+                }).addTo(map);
+                marker.bindPopup(`<strong>Cámara ${camera.nombre_camara}</strong><br>${camera.direccion||''}<br>Participaciones: ${count}`);
+                markers.push(marker);
+            });
+            if(markers.length && !currentMapBounds) map.fitBounds(L.featureGroup(markers).getBounds().pad(0.1));
+        }
+        
+        // Generar tablas para el documento editable (separadas)
+        function generarTablaCasosEditable(){
+            let matrixCasos = {}, fiscaliasSet = new Set(), caratulasSet = new Set();
+            filteredEvents.forEach(ev=>{
+                let f = agruparFiscalia(ev.fiscalia);
+                let c = ev.caratula || 'Sin carátula';
+                fiscaliasSet.add(f); caratulasSet.add(c);
+                matrixCasos[f] = matrixCasos[f]||{};
+                matrixCasos[f][c] = (matrixCasos[f][c]||0)+1;
+            });
+            let fiscOrd = ordenarFiscalias(Array.from(fiscaliasSet));
+            let carOrd = Array.from(caratulasSet).sort();
+            
+            let html = '<div class="doc-section"><div class="doc-section-title">📊 Casos por Fiscalía/Carátula</div>';
+            html += '<table><thead> <th>Fiscalía</th>';
+            carOrd.forEach(c=>html+=`<th>${c.length>20?c.slice(0,18)+'..':c}</th>`);
+            html+='<th>Total</th> </thead><tbody>';
+            fiscOrd.forEach(f=>{
+                let rowTotal=0;
+                html+=`<tr><td><strong>${f}</strong></td>`;
+                carOrd.forEach(c=>{let val=matrixCasos[f]?.[c]||0; rowTotal+=val; html+=`<td>${val||'-'}</td>`;});
+                html+=`<td><strong>${rowTotal}</strong></td></tr>`;
+            });
+            html+=`<tr style="background:#f0f0f0;"><td><strong>TOTAL</strong></td>`;
+            let grand=0; carOrd.forEach(c=>{let col=0; fiscOrd.forEach(f=>col+=matrixCasos[f]?.[c]||0); grand+=col; html+=`<td><strong>${col}</strong></td>`;});
+            html+=`<td><strong>${grand}</strong></td></tr>`;
+            html+=`</tbody>`;
+            html+=`</div>`;
+            return html;
+        }
+        
+        function generarTablaMinutosEditable(){
+            let matrixMinutosPonderados = {}, fiscaliasSet = new Set(), caratulasSet = new Set();
+            filteredEvents.forEach(ev=>{
+                let f = agruparFiscalia(ev.fiscalia);
+                let c = ev.caratula || 'Sin carátula';
+                let minsPonderados = calcularMinutosPonderados(ev);
+                fiscaliasSet.add(f); caratulasSet.add(c);
+                matrixMinutosPonderados[f] = matrixMinutosPonderados[f]||{};
+                matrixMinutosPonderados[f][c] = (matrixMinutosPonderados[f][c]||0) + minsPonderados;
+            });
+            let fiscOrd = ordenarFiscalias(Array.from(fiscaliasSet));
+            let carOrd = Array.from(caratulasSet).sort();
+            
+            let html = '<div class="doc-section"><div class="doc-section-title">⏱️ Minutos de Grabación Solicitados por Fiscalía y Carátula</div>';
+            html+='<table><thead><th>Fiscalía</th>';
+            carOrd.forEach(c=>html+=`<th>${c.length>20?c.slice(0,18)+'..':c}</th>`);
+            html+='<th>Total Min</th></thead><tbody>';
+            fiscOrd.forEach(f=>{
+                let rowMin=0;
+                html+=`<tr><td><strong>${f}</strong></td>`;
+                carOrd.forEach(c=>{let mins=matrixMinutosPonderados[f]?.[c]||0; rowMin+=mins; html+=`<td>${mins>0?mins.toLocaleString():'-'}</td>`;});
+                html+=`<td><strong>${rowMin.toLocaleString()} min</strong></td></tr>`;
+            });
+            html+=`<tr style="background:#f0f0f0;"><td><strong>TOTAL</strong></td>`;
+            let grandMin=0; carOrd.forEach(c=>{let col=0; fiscOrd.forEach(f=>col+=matrixMinutosPonderados[f]?.[c]||0); grandMin+=col; html+=`<td><strong>${col.toLocaleString()} min</strong></td>`;});
+            html+=`<td><strong>${grandMin.toLocaleString()} min</strong></td></tr>`;
+            html+=`</tbody></table></div>`;
+            return html;
+        }
+        
+        function generarTablaCaratulaCantidadEditable(){
+            let counts={}, minsPonderados={};
+            filteredEvents.forEach(ev=>{let c=ev.caratula||'Sin carátula'; counts[c]=(counts[c]||0)+1; minsPonderados[c]=(minsPonderados[c]||0)+calcularMinutosPonderados(ev);});
+            let sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+            let totalCasos=filteredEvents.length;
+            let html='<div class="doc-section"><div class="doc-section-title">📊 Distribución de Casos por Carátula</div><table><thead><th>Carátula</th><th>Casos</th><th>%</th><th>Minutos de Grabación</th></thead><tbody>';
+            sorted.forEach(([c,count])=>{let pct=totalCasos?((count/totalCasos)*100).toFixed(1):0; html+=`<tr><td><strong>${c}</strong></td><td><strong>${count}</strong></td><td>${pct}%</td><td><strong>${minsPonderados[c].toLocaleString()} min</strong></td></tr>`;});
+            html+=`<tr style="background:#f0f0f0;"><td><strong>TOTAL</strong></td><td><strong>${totalCasos}</strong></td><td><strong>100%</strong></td><td><strong>${Object.values(minsPonderados).reduce((a,b)=>a+b,0).toLocaleString()} min</strong></td></tr>`;
+            html+='</tbody></table></div>';
+            return html;
+        }
+        
+        function generarRepitenciaCamarasEditable(){
+            let camCounts={}, casosConCams=0;
+            filteredEvents.forEach(ev=>{
+                if(ev.camaras_aportadas){
+                    let cams=procesarCamarasAportadas(ev.camaras_aportadas);
+                    if(cams.length){ casosConCams++; cams.forEach(c=>camCounts[c]=(camCounts[c]||0)+1); }
+                }
+            });
+            let sorted=Object.entries(camCounts).sort((a,b)=>b[1]-a[1]);
+            if(!sorted.length) return '<div class="doc-section"><div class="doc-section-title">📹 Cámaras más solicitadas por la Justicia</div><p>Sin datos de cámaras</p></div>';
+            let html=`<div class="doc-section"><div class="doc-section-title">📹 Cámaras más solicitadas por la Justicia</div>
+            <div style="padding:10px;background:#f5f5f5;margin-bottom:15px;"><strong>📊 Casos con solicitud de cámaras: ${casosConCams} | Total de solicitudes: ${Object.values(camCounts).reduce((a,b)=>a+b,0)}</strong></div>
+            <table><thead><th>Cámara</th><th>Veces Solicitada</th><th>% de casos</th><th>Nivel de demanda</th></thead><tbody>`;
+            sorted.forEach(([cam,count])=>{
+                let pct= casosConCams?((count/casosConCams)*100).toFixed(1):0;
+                let badge = count>10?'🔴 Alta':(count>5?'🟡 Media':'🟢 Baja');
+                let cls = count>10?'repitencia-alta':(count>5?'repitencia-media':'repitencia-baja');
+                html+=`<tr><td><strong>Cámara ${cam}</strong></td><td><strong>${count}</strong></td><td>${pct}%</td><td><span class="repitencia-badge ${cls}">${badge}</span></td></tr>`;
+            });
+            html+='</tbody></table></div>';
+            return html;
+        }
+        
+        function exportarDocumentoEditable() {
+            showNotification("📄 Generando documento...");
+            
+            let mesSeleccionado = document.getElementById('mes-agrupacion').value || "Todos los meses";
+            let startDate = document.getElementById('start-date').value;
+            let endDate = document.getElementById('end-date').value;
+            let periodoTexto = mesSeleccionado;
+            if (startDate && endDate) {
+                periodoTexto += ` (${startDate.split('-').reverse().join('/')} al ${endDate.split('-').reverse().join('/')})`;
+            }
+            
+            let minutosReales = document.getElementById('total-minutes-simple').innerText;
+            let minutosPonderados = document.getElementById('total-minutes').innerText;
+            let totalCasos = document.getElementById('cases-count').innerText;
+            
+            let tablasHTML = '';
+            tablasHTML += generarTablaCasosEditable();
+            tablasHTML += generarTablaMinutosEditable();
+            tablasHTML += generarTablaCaratulaCantidadEditable();
+            tablasHTML += generarRepitenciaCamarasEditable();
+            
+            let docHtml = `<!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Informe Análisis Judicial - ${periodoTexto}</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', 'Calibri', 'Times New Roman', serif;
+                        margin: 0;
+                        padding: 40px;
+                        background: white;
+                    }
+                    .editable-doc {
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        background: white;
+                    }
+                    .editable-doc h1 { 
+                        color: #bad405; 
+                        margin-bottom: 5px; 
+                        font-size: 28px;
+                    }
+                    .doc-header { 
+                        text-align: center; 
+                        margin-bottom: 30px; 
+                        border-bottom: 3px solid #bad405; 
+                        padding-bottom: 15px;
+                    }
+                    .doc-periodo {
+                        font-size: 14px;
+                        color: #555;
+                        margin-top: 5px;
+                    }
+                    .doc-summary { 
+                        display: flex; 
+                        justify-content: space-around; 
+                        margin: 25px 0; 
+                        flex-wrap: wrap; 
+                        gap: 15px; 
+                    }
+                    .doc-summary-item { 
+                        background: #f8f9fa; 
+                        padding: 15px 25px; 
+                        border-radius: 8px; 
+                        text-align: center; 
+                        min-width: 180px;
+                        border: 1px solid #e0e0e0;
+                    }
+                    .doc-summary-value { 
+                        font-size: 28px; 
+                        font-weight: bold; 
+                        color: #4a8cff; 
+                    }
+                    .doc-section { 
+                        margin: 35px 0; 
+                        page-break-inside: avoid;
+                    }
+                    .doc-section-title { 
+                        font-size: 20px; 
+                        font-weight: bold; 
+                        color: #4a8cff; 
+                        margin-bottom: 15px; 
+                        border-left: 5px solid #bad405; 
+                        padding-left: 12px;
+                        background: #f5f5f5;
+                        padding: 8px 12px;
+                        border-radius: 5px;
+                    }
+                    table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin: 15px 0; 
+                        font-size: 12px;
+                        background: white;
+                    }
+                    th, td { 
+                        border: 1px solid #ddd; 
+                        padding: 10px 8px; 
+                        text-align: left; 
+                        vertical-align: top;
+                    }
+                    th { 
+                        background: #4a8cff; 
+                        color: white; 
+                        font-weight: bold;
+                    }
+                    .repitencia-badge { 
+                        display: inline-block; 
+                        padding: 3px 10px; 
+                        border-radius: 20px; 
+                        font-size: 11px; 
+                        font-weight: bold; 
+                    }
+                    .repitencia-alta { background: #ff4757; color: white; }
+                    .repitencia-media { background: #ffa502; color: white; }
+                    .repitencia-baja { background: #00b894; color: white; }
+                    .doc-footer {
+                        margin-top: 40px;
+                        text-align: center;
+                        font-size: 11px;
+                        color: #888;
+                        border-top: 1px solid #ddd;
+                        padding-top: 15px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="editable-doc">
+                    <div class="doc-header">
+                        <h1>⚖️ Análisis de Dispositivos y Eficacia Judicial</h1>
+                        <p>Secretaría de Seguridad | Municipalidad de Chascomús</p>
+                        <p class="doc-periodo"><strong>Periodo analizado:</strong> ${periodoTexto}</p>
+                        <p class="doc-periodo"><strong>Fecha de generación:</strong> ${new Date().toLocaleString('es-AR')}</p>
+                    </div>
+                    
+                    <div class="doc-summary">
+                        <div class="doc-summary-item"><div>📸 Minutos de Oficios</div><div class="doc-summary-value">${minutosReales}</div></div>
+                        <div class="doc-summary-item"><div>📸 Minutos de grabación solicitados</div><div class="doc-summary-value">${minutosPonderados}</div></div>
+                        <div class="doc-summary-item"><div>📋 Casos analizados</div><div class="doc-summary-value">${totalCasos}</div></div>
+                    </div>
+                    
+                    ${tablasHTML}
+                    
+                    <div class="doc-footer">
+                        Informe generado automáticamente - Municipalidad de Chascomús<br>
+                        Secretaría de Seguridad
+                    </div>
+                </div>
+            </body>
+            </html>`;
+            
+            const blob = new Blob([docHtml], { type: 'application/msword' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `Informe_Analisis_Judicial_${periodoTexto.replace(/\s+/g, '_')}.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showNotification("✅ Documento generado correctamente");
+        }
+        
+        function updateAllAnalysis(){
+            let container = document.getElementById('analysis-content');
+            if(currentTab==='fiscalia-caratula') container.innerHTML = generarTablaFiscaliaCaratula();
+            else if(currentTab==='caratula-cantidad') container.innerHTML = generarTablaCaratulaCantidad();
+            else container.innerHTML = generarRepitenciaCamaras();
+        }
+        
+        function generarTablaFiscaliaCaratula(){
+            let matrixCasos = {}, matrixMinutosPonderados = {}, fiscaliasSet = new Set(), caratulasSet = new Set();
+            filteredEvents.forEach(ev=>{
+                let f = agruparFiscalia(ev.fiscalia);
+                let c = ev.caratula || 'Sin carátula';
+                let minsPonderados = calcularMinutosPonderados(ev);
+                fiscaliasSet.add(f); caratulasSet.add(c);
+                matrixCasos[f] = matrixCasos[f]||{};
+                matrixCasos[f][c] = (matrixCasos[f][c]||0)+1;
+                matrixMinutosPonderados[f] = matrixMinutosPonderados[f]||{};
+                matrixMinutosPonderados[f][c] = (matrixMinutosPonderados[f][c]||0) + minsPonderados;
+            });
+            let fiscOrd = ordenarFiscalias(Array.from(fiscaliasSet));
+            let carOrd = Array.from(caratulasSet).sort();
+            
+            let html = '<div style="margin:10px 0 5px;font-weight:bold;">📊 Casos por Fiscalía/Carátula</div><table class="analysis-table"><thead> <th>Fiscalía</th>';
+            carOrd.forEach(c=>html+=`<th>${c.length>15?c.slice(0,12)+'..':c}</th>`);
+            html+='<th>Total</th> </thead><tbody>';
+            fiscOrd.forEach(f=>{
+                let rowTotal=0;
+                html+=`<tr><td><strong>${f}</strong></td>`;
+                carOrd.forEach(c=>{let val=matrixCasos[f]?.[c]||0; rowTotal+=val; html+=`<td><strong>${val||'-'}</strong></td>`;});
+                html+=`<td><strong>${rowTotal}</strong></td></tr>`;
+            });
+            html+=`<tr style="background:#3a3a3a;"><td><strong>TOTAL</strong></td>`;
+            let grand=0; carOrd.forEach(c=>{let col=0; fiscOrd.forEach(f=>col+=matrixCasos[f]?.[c]||0); grand+=col; html+=`<td><strong>${col}</strong></td>`;});
+            html+=`<td><strong>${grand}</strong></td></tr>`;
+            html+=`</tbody>`;
+            html+=`<div style="margin:20px 0 5px;font-weight:bold;">⏱️ Minutos de Grabación Solicitados por Fiscalía y Carátula</div><table class="analysis-table"><thead><th>Fiscalía</th>`;
+            carOrd.forEach(c=>html+=`<th>${c.length>15?c.slice(0,12)+'..':c}</th>`);
+            html+='<th>Total Min</th></thead><tbody>';
+            fiscOrd.forEach(f=>{
+                let rowMin=0;
+                html+=`<tr><td><strong>${f}</strong></td>`;
+                carOrd.forEach(c=>{let mins=matrixMinutosPonderados[f]?.[c]||0; rowMin+=mins; html+=`<td><strong>${mins>0?mins.toLocaleString():'-'}</strong></td>`;});
+                html+=`<td><strong>${rowMin.toLocaleString()} min</strong></td></tr>`;
+            });
+            html+=`<tr style="background:#3a3a3a;"><td><strong>TOTAL</strong></td>`;
+            let grandMin=0; carOrd.forEach(c=>{let col=0; fiscOrd.forEach(f=>col+=matrixMinutosPonderados[f]?.[c]||0); grandMin+=col; html+=`<td><strong>${col.toLocaleString()} min</strong></td>`;});
+            html+=`<td><strong>${grandMin.toLocaleString()} min</strong></td></tr>`;
+            html+=`</tbody>`;
+            return html;
+        }
+        
+        function generarTablaCaratulaCantidad(){
+            let counts={}, minsPonderados={};
+            filteredEvents.forEach(ev=>{let c=ev.caratula||'Sin carátula'; counts[c]=(counts[c]||0)+1; minsPonderados[c]=(minsPonderados[c]||0)+calcularMinutosPonderados(ev);});
+            let sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+            let totalCasos=filteredEvents.length;
+            let html='<table class="analysis-table"><thead><th>Carátula</th><th>Casos</th><th>%</th><th>Minutos de Grabación</th></thead><tbody>';
+            sorted.forEach(([c,count])=>{let pct=totalCasos?((count/totalCasos)*100).toFixed(1):0; html+=`<tr><td><strong>${c}</strong></td><td><strong>${count}</strong></td><td><strong>${pct}%</strong></td><td><strong>${minsPonderados[c].toLocaleString()} min</strong></td></tr>`;});
+            html+=`<tr style="background:#4a8cff;"><td><strong>TOTAL</strong></td><td><strong>${totalCasos}</strong></td><td><strong>100%</strong></td><td><strong>${Object.values(minsPonderados).reduce((a,b)=>a+b,0).toLocaleString()} min</strong></td></tr>`;
+            html+='</tbody>';
+            return html;
+        }
+        
+        function generarRepitenciaCamaras(){
+            let camCounts={}, casosConCams=0;
+            filteredEvents.forEach(ev=>{
+                if(ev.camaras_aportadas){
+                    let cams=procesarCamarasAportadas(ev.camaras_aportadas);
+                    if(cams.length){ casosConCams++; cams.forEach(c=>camCounts[c]=(camCounts[c]||0)+1); }
+                }
+            });
+            let sorted=Object.entries(camCounts).sort((a,b)=>b[1]-a[1]);
+            if(!sorted.length) return '<div class="loading">Sin datos de cámaras</div>';
+            let html=`<div style="padding:8px;background:#333;margin-bottom:10px;"><strong>📊 Casos con solicitud de cámaras: ${casosConCams} | Total de solicitudes: ${Object.values(camCounts).reduce((a,b)=>a+b,0)}</strong></div>
+            <table class="analysis-table repitencia-table"><thead><th>Cámara</th><th>Veces Solicitada</th><th>% de casos</th><th>Nivel de demanda</th></thead><tbody>`;
+            sorted.forEach(([cam,count])=>{
+                let pct= casosConCams?((count/casosConCams)*100).toFixed(1):0;
+                let badge = count>10?'🔴 Alta':(count>5?'🟡 Media':'🟢 Baja');
+                let cls = count>10?'repitencia-alta':(count>5?'repitencia-media':'repitencia-baja');
+                html+=`<tr><td><strong>Cámara ${cam}</strong></td><td><strong>${count}</strong></td><td><strong>${pct}%</strong></td><td><span class="repitencia-badge ${cls}"><strong>${badge}</strong></span></td></tr>`;
+            });
+            html+='</tbody>';
+            return html;
+        }
+        
+        function exportarMinutosPorCamara() {
+            let minsPorCamara = {};
+            camerasData.forEach(c=>{ if(c.nombre_camara) minsPorCamara[c.nombre_camara]=0; });
+            filteredEvents.forEach(ev => {
+                let minsReales = calcularMinutosReales(ev);
+                if(minsReales > 0 && ev.camaras_aportadas) {
+                    procesarCamarasAportadas(ev.camaras_aportadas).forEach(cam => {
+                        if(minsPorCamara[cam] !== undefined) minsPorCamara[cam] += minsReales;
+                    });
+                }
+            });
+            let data = [['Cámara', 'Minutos Totales', 'Horas Equivalentes', 'Dirección']];
+            let camarasConDatos = Object.entries(minsPorCamara).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+            camarasConDatos.forEach(([cam, minutos]) => {
+                let camera = camerasData.find(c => c.nombre_camara === cam);
+                let direccion = camera?.direccion || `Cámara ${cam}`;
+                data.push([cam, minutos.toLocaleString(), (minutos/60).toFixed(2), direccion]);
+            });
+            let totalGeneral = camarasConDatos.reduce((acc, [_,min]) => acc + min, 0);
+            data.push(['TOTAL GENERAL', totalGeneral.toLocaleString(), (totalGeneral/60).toFixed(2), '-']);
+            let ws = XLSX.utils.aoa_to_sheet(data);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Minutos x Cámara');
+            XLSX.writeFile(wb, `minutos_camaras_${Date.now()}.xlsx`);
+            showNotification("✅ Excel generado");
+        }
+        
+        function generarGraficoBarras(){
+            let minsPorCamara = {};
+            camerasData.forEach(c=>{ if(c.nombre_camara) minsPorCamara[c.nombre_camara]=0; });
+            filteredEvents.forEach(ev => {
+                let minsReales = calcularMinutosReales(ev);
+                if(minsReales > 0 && ev.camaras_aportadas) {
+                    procesarCamarasAportadas(ev.camaras_aportadas).forEach(cam => {
+                        if(minsPorCamara[cam] !== undefined) minsPorCamara[cam] += minsReales;
+                    });
+                }
+            });
+            let top = Object.entries(minsPorCamara).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,12);
+            if(!top.length){ showNotification("Sin datos para gráfico"); return; }
+            document.getElementById('chart-modal').classList.add('show');
+            let ctx = document.getElementById('minutos-chart').getContext('2d');
+            if(minutosChart) minutosChart.destroy();
+            minutosChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: top.map(([c])=>`Cam ${c}`), datasets: [{ label: 'Minutos por cámara', data: top.map(([_,v])=>v), backgroundColor: '#4a8cff' }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (ctx) => `${ctx.raw.toLocaleString()} minutos (${(ctx.raw/60).toFixed(1)} hs)` } } } }
+            });
+        }
+        
+        function showNotification(msg){ let n=document.getElementById('notification'); n.textContent=msg; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),2500); }
+        
+        function initializeChips(){
+            let caratulaDD = document.getElementById('caratula-dropdown'), fiscaliaDD = document.getElementById('fiscalia-dropdown');
+            let caratulasOrdenadas = Array.from(caratulaOptions).sort();
+            let fiscaliasOrdenadas = Array.from(fiscaliaOptions).sort();
+            
+            caratulasOrdenadas.forEach(c=>{ let opt=document.createElement('div'); opt.className='chips-option'; opt.textContent=c; opt.onclick=()=>{ if(!selectedCaratulas.includes(c)){ selectedCaratulas.push(c); updateChipsDisplay('caratula'); } caratulaDD.classList.remove('show'); }; caratulaDD.appendChild(opt); });
+            
+            // Orden de fiscalías para el selector: prioridad específica
+            const ordenPrioridadSelector = ["U.F.I N°9", "U.F.I N°10", "ESPECIALIZADA EN NARCOTRÁFICO"];
+            fiscaliasOrdenadas.sort((a,b) => {
+                const indexA = ordenPrioridadSelector.indexOf(a);
+                const indexB = ordenPrioridadSelector.indexOf(b);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.localeCompare(b);
+            });
+            
+            fiscaliasOrdenadas.forEach(f=>{ let opt=document.createElement('div'); opt.className='chips-option'; opt.textContent=f; opt.onclick=()=>{ if(!selectedFiscalias.includes(f)){ selectedFiscalias.push(f); updateChipsDisplay('fiscalia'); } fiscaliaDD.classList.remove('show'); }; fiscaliaDD.appendChild(opt); });
+            
+            document.getElementById('caratula-select').onclick=e=>{ e.stopPropagation(); caratulaDD.classList.toggle('show'); fiscaliaDD.classList.remove('show'); };
+            document.getElementById('fiscalia-select').onclick=e=>{ e.stopPropagation(); fiscaliaDD.classList.toggle('show'); caratulaDD.classList.remove('show'); };
+            document.addEventListener('click',()=>{ caratulaDD.classList.remove('show'); fiscaliaDD.classList.remove('show'); });
+        }
+        
+        function updateChipsDisplay(type){
+            let arr = type==='caratula'?selectedCaratulas:selectedFiscalias;
+            let container = document.getElementById(`${type}-chips`);
+            container.innerHTML='';
+            arr.forEach(v=>{ let chip=document.createElement('div'); chip.className='chip'; chip.innerHTML=`${v}<button class="chip-remove" data-value="${v}">×</button>`; container.appendChild(chip); });
+            document.querySelectorAll(`#${type}-chips .chip-remove`).forEach(btn=>{ btn.onclick=e=>{ let val=btn.getAttribute('data-value'); let idx=arr.indexOf(val); if(idx>-1) arr.splice(idx,1); updateChipsDisplay(type); }; });
+            let selectDiv = document.getElementById(`${type}-select`);
+            selectDiv.textContent = arr.length ? `${arr.length} seleccionada(s)` : `Seleccionar ${type==='caratula'?'carátulas':'fiscalías'}...`;
+        }
+        
+        function loadData(){
+            Promise.all([fetch(CAMERAS_API_URL).then(r=>r.json()), fetch(EVENTS_API_URL).then(r=>r.json())]).then(([cams, evs])=>{
+                camerasData=cams; eventsData=evs;
+                eventsData.forEach(ev=>{ if(ev.caratula) caratulaOptions.add(ev.caratula); if(ev.fiscalia) fiscaliaOptions.add(ev.fiscalia); if(ev['mes-agrupacion']) mesAgrupacionOptions.add(ev['mes-agrupacion']); });
+                
+                let selectMes = document.getElementById('mes-agrupacion');
+                let mesesOrdenados = Array.from(mesAgrupacionOptions).sort();
+                mesesOrdenados.forEach(m=>{ let opt=document.createElement('option'); opt.value=m; opt.textContent=m; selectMes.appendChild(opt); });
+                
+                // Seleccionar automáticamente el último mes
+                if (mesesOrdenados.length > 0) {
+                    let ultimoMes = mesesOrdenados[mesesOrdenados.length - 1];
+                    selectMes.value = ultimoMes;
+                }
+                
+                initializeChips();
+                applyFilters();
+            }).catch(console.error);
+        }
+        
+        map = L.map('map').setView([-35.57, -58.01], 14);
+        baseLayers.openstreetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap'}).addTo(map);
+        baseLayers.carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {attribution:'© CARTO'});
+        function changeBaseLayer(layer){ map.removeLayer(baseLayers.openstreetmap); map.removeLayer(baseLayers.carto); baseLayers[layer].addTo(map); currentBaseLayer=layer; updateMapButtons(layer); }
+        function updateMapButtons(active){ document.getElementById('btn-lienzo1').classList.toggle('active',active==='openstreetmap'); document.getElementById('btn-lienzo2').classList.toggle('active',active==='carto'); }
+        document.getElementById('btn-lienzo1').onclick=()=>changeBaseLayer('openstreetmap');
+        document.getElementById('btn-lienzo2').onclick=()=>changeBaseLayer('carto');
+        document.getElementById('point-size').addEventListener('input',e=>{pointSize=e.target.value; document.getElementById('point-size-value').innerText=pointSize+'px'; updateMapPoints();});
+        document.getElementById('point-opacity').addEventListener('input',e=>{pointOpacity=e.target.value; document.getElementById('point-opacity-value').innerText=Math.round(pointOpacity*100)+'%'; updateMapPoints();});
+        document.getElementById('filter-form').addEventListener('submit',e=>{e.preventDefault(); applyFilters();});
+        document.getElementById('reset-btn').addEventListener('click',()=>{ 
+            selectedCaratulas=[]; selectedFiscalias=[]; 
+            updateChipsDisplay('caratula'); updateChipsDisplay('fiscalia'); 
+            document.getElementById('start-date').value='';
+            document.getElementById('end-date').value='';
+            applyFilters(); 
+        });
+        document.getElementById('export-minutos-camaras-btn').addEventListener('click',exportarMinutosPorCamara);
+        document.getElementById('export-grafico-barras-btn').addEventListener('click',generarGraficoBarras);
+        document.getElementById('export-doc-btn').addEventListener('click',exportarDocumentoEditable);
+        document.getElementById('download-chart-btn').addEventListener('click',()=>{ let canvas=document.getElementById('minutos-chart'); if(canvas){ let link=document.createElement('a'); link.download='grafico.png'; link.href=canvas.toDataURL(); link.click(); } });
+        document.getElementById('chart-close').onclick=()=>document.getElementById('chart-modal').classList.remove('show');
+        document.getElementById('tab-fiscalia-caratula').onclick=()=>{ currentTab='fiscalia-caratula'; document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active')); document.getElementById('tab-fiscalia-caratula').classList.add('active'); updateAllAnalysis(); };
+        document.getElementById('tab-caratula-cantidad').onclick=()=>{ currentTab='caratula-cantidad'; document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active')); document.getElementById('tab-caratula-cantidad').classList.add('active'); updateAllAnalysis(); };
+        document.getElementById('tab-repitencia-camaras').onclick=()=>{ currentTab='repitencia-camaras'; document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active')); document.getElementById('tab-repitencia-camaras').classList.add('active'); updateAllAnalysis(); };
+        loadData();
+    </script>
+</body>
+</html>
