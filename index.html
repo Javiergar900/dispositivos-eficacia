@@ -844,7 +844,7 @@
             filteredEvents = eventsData.filter(ev => {
                 if (mesAgrupacion && ev['mes-agrupacion'] !== mesAgrupacion) return false;
                 if (!aplicarFiltrosFechas(ev, startDate, endDate)) return false;
-                if (selectedCaratulas.length > 0 && !selectedCaratulas.includes(ev.caratula)) return false;
+                if (selectedCaratulas.length > 0 && !selectedCaratulas.includes(ev['caratula-agrupada'])) return false;
                 if (selectedFiscalias.length > 0 && !selectedFiscalias.includes(ev.fiscalia)) return false;
                 return true;
             });
@@ -908,7 +908,7 @@
             let matrixCasos = {}, fiscaliasSet = new Set(), caratulasSet = new Set();
             filteredEvents.forEach(ev=>{
                 let f = agruparFiscalia(ev.fiscalia);
-                let c = ev.caratula || 'Sin carátula';
+                let c = ev['caratula-agrupada'] || 'Sin carátula';
                 fiscaliasSet.add(f); caratulasSet.add(c);
                 matrixCasos[f] = matrixCasos[f]||{};
                 matrixCasos[f][c] = (matrixCasos[f][c]||0)+1;
@@ -1217,7 +1217,7 @@
         
         function generarTablaCaratulaCantidad(){
             let counts={}, minsPonderados={};
-            filteredEvents.forEach(ev=>{let c=ev.caratula||'Sin carátula'; counts[c]=(counts[c]||0)+1; minsPonderados[c]=(minsPonderados[c]||0)+calcularMinutosPonderados(ev);});
+            filteredEvents.forEach(ev=>{let c=ev['caratula-agrupada'] ||'Sin carátula'; counts[c]=(counts[c]||0)+1; minsPonderados[c]=(minsPonderados[c]||0)+calcularMinutosPonderados(ev);});
             let sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
             let totalCasos=filteredEvents.length;
             let html='<table class="analysis-table"><thead><th>Carátula</th><th>Casos</th><th>%</th><th>Minutos de Grabación</th></thead><tbody>';
@@ -1339,7 +1339,7 @@
         function loadData(){
             Promise.all([fetch(CAMERAS_API_URL).then(r=>r.json()), fetch(EVENTS_API_URL).then(r=>r.json())]).then(([cams, evs])=>{
                 camerasData=cams; eventsData=evs;
-                eventsData.forEach(ev=>{ if(ev.caratula) caratulaOptions.add(ev.caratula); if(ev.fiscalia) fiscaliaOptions.add(ev.fiscalia); if(ev['mes-agrupacion']) mesAgrupacionOptions.add(ev['mes-agrupacion']); });
+                eventsData.forEach(ev=>{ if(ev['caratula-agrupada']) caratulaOptions.add(ev['caratula-agrupada']); if(ev.fiscalia) fiscaliaOptions.add(ev.fiscalia); if(ev['mes-agrupacion']) mesAgrupacionOptions.add(ev['mes-agrupacion']); });
                 
                 let selectMes = document.getElementById('mes-agrupacion');
                 let mesesOrdenados = Array.from(mesAgrupacionOptions).sort();
