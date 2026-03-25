@@ -1175,7 +1175,7 @@
             let matrixCasos = {}, matrixMinutosPonderados = {}, fiscaliasSet = new Set(), caratulasSet = new Set();
             filteredEvents.forEach(ev=>{
                 let f = agruparFiscalia(ev.fiscalia);
-                let c = ev.caratula || 'Sin carátula';
+                let c = ev['caratula-agrupada'] || 'Sin carátula';
                 let minsPonderados = calcularMinutosPonderados(ev);
                 fiscaliasSet.add(f); caratulasSet.add(c);
                 matrixCasos[f] = matrixCasos[f]||{};
